@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "dev": "clear ; PORT=3000 nodemon src/index.js"
+    "dev": "clear ; PORT=3000 nodemon src/index.js",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

@@ -3,7 +3,12 @@ const { createClient } = require('redis');
 class Db {
     static #client;
     static init = async () => {
-        this.#client = createClient();
+        this.#client = createClient({
+            socket: {
+                host: process.env.REDIS_HOST,
+                port: process.env.REDIS_PORT
+            }
+        });
         this.#client.on('error', error => console.error(`Redis client error : ${error}`));
         await this.#client.connect();
     }

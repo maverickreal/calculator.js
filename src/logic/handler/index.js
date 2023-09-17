@@ -64,7 +64,10 @@ class Handler {
                 return res.status(400).send('No id supplied.');
             }
             Db.reset(req.query.id);
-            res.status(200).send();
+            res.status(200).send({
+                'success': true,
+                'message': `calculator ${req.query.id} is now reset`
+            });
         } catch (error) {
             this.#logger(error, res);
         }
