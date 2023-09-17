@@ -4,48 +4,67 @@ const { v4: uuid } = require('uuid'),
 
 class Handler {
     static #logger = (err, res) => {
-        console.log(err);
+        console.log('Error in handler: ', err);
         res.status(500).send();
     }
     static init = async (req, res, next) => {
         try {
             const id = uuid();
-            Db.build(id);
-            res.status(200).send({ id });
-            next();
-        } catch (error) {
-            this.#logger(error, res);
-        }
-    }
-    static operation = async (req, res, next) => {
-        try {
-            const { operator, operand } = req.query,
-                optr = Operators.operators[operator.toUpperCase()],
-                opnd = Integer.parseInt(operand);
-            if (!optr || isNaN(opnd)) {
-                return res.status(400).send('Invalid operation');
+            await Db.build(id);
+            switch (req.query.operator) {
+                case Operators.ADD:
+                    req.query.operand = parseInt(req.query.num2) + parseInt(req.query.num1);
+                    break;
+                case Operators.SUBTRACT:
+                    req.query.operand = parseInt(req.query.num1) - parseInt(req.query.num2);
+                    break;
+                case Operators.MULTIPLY:
+                    req.query.operand = parseInt(req.query.num2) * parseInt(req.query.num1);
+                    break;
+                case Operators.DIVIDE:
+                    req.query.operand = parseInt(req.query.num1) / parseInt(req.query.num2);
+                    break;
+                case Operators.MODULO:
+                    req.query.operand = parseInt(req.query.num1) % parseInt(req.query.num2);
+                    break;
+                case Operators.EXPONENT:
+                    req.query.operand = parseInt(req.query.num1) ** parseInt(req.query.num2);
+                    break;
             }
-            const answer = await Db[optr](opnd);
-            res.status(200).send({ answer });
+            req.query.operand = String(req.query.operand);
+            req.query.id = id;
+            req.query.operator = Operators.ADD;
             next();
         } catch (error) {
             this.#logger(error, res);
         }
     }
-    static undo = async (req, res, next) => {
+    static operation = async (req, res) => {
         try {
-            Db.undo();
-            res.status(200).send();
-            next();
+            const answer = await Db[req.query.operator](req.query.id, req.query.operand);
+            res.status(200).send({ id: req.query.id, answer });
         } catch (error) {
             this.#logger(error, res);
         }
     }
-    static reset = async (req, res, next) => {
+    static undo = async (req, res) => {
         try {
-            Db.reset();
+            if (!req.query.id) {
+                return res.status(400).send('No id supplied.');
+            }
+            const msg = await Db.undo(req.query.id);
+            res.status(200).send(msg);
+        } catch (error) {
+            this.#logger(error, res);
+        }
+    }
+    static reset = async (req, res) => {
+        try {
+            if (!req.query.id) {
+                return res.status(400).send('No id supplied.');
+            }
+            Db.reset(req.query.id);
             res.status(200).send();
-            next();
         } catch (error) {
             this.#logger(error, res);
         }
