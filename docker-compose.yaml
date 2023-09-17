@@ -14,7 +14,7 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
-    build: .
+    build: ./
     ports:
       - 5000:5000
     networks:
@@ -25,5 +25,4 @@ services:
       - redis
 volumes:
   redis_data:
-  auth_data:
   node_data:
